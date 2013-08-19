@@ -27,21 +27,13 @@ Empty side: The player plays in a middle square on any of the 4 sides.
 """
 
 
-def get_props(game):
-     # TODO(daniel): This will introduce a bug with any other property names starting with a, b, or c
-    props = dict((k, v) for k, v in game.state.__dict__.iteritems() if (k.startswith('a') or k.startswith('b')
-                                                                        or k.startswith('c')))
-    return props
-
-
 def first_turn(game):
     """
     :param game: The current game.
     :return: A Boolean representing if its the first move.
     """
-    props = get_props(game)
-    values = [x for x in props.values() if x is not None]
-    return len(values) == 0
+    state = game.state
+    return (state.num_noughts() + state.num_crosses()) == 0
 
 
 def second_turn(game):
@@ -49,6 +41,74 @@ def second_turn(game):
     :param game: The current game.
     :return: A Boolean representing if its the second move.
     """
-    props = get_props(game)
-    values = [x for x in props.values() if x is not None]
-    return len(values) == 1
+    state = game.state
+    return (state.num_noughts() + state.num_crosses()) == 1
+
+
+def bitmask_to_slot(bitmask):
+    """
+    |  A |  B |  C |
+    ---------------
+    |{a1}|{b1}|{c1}|
+    |{a2}|{b2}|{c2}|
+    |{a2}|{b3}|{c3}|
+
+    :param bitmask: A bitmask converted into a board slot. IE 0b000000001 -> 'c3'
+    :return: A slot string
+    """
+    pass
+
+def available_win_slot(game, team):
+    """
+    |  A |  B |  C |
+    ---------------
+    |{a1}|{b1}|{c1}|
+    |{a2}|{b2}|{c2}|
+    |{a2}|{b3}|{c3}|
+
+    MSB -> LSB == a1 -> c3
+
+    :param game: The current game.
+    :param team: The team to check for 'X' or 'O'.
+    :return: List of masks of available win strategies.
+    """
+    available_win_list = []
+    state = game.state
+    team_bitmask = state.crosses_bitmask() if team == 'X' else state.noughts_bitmask()
+    available_slots_bitmask = state.slots_available_bitmask()
+    diagnol_win_bitmask = 0b100010001
+    iter_bitmask = 0b000000001
+    available_wins_bitmask = 0b000000000
+
+    for i in range(1, 10):
+        # Only check for available slots
+        if available_slots_bitmask & iter_bitmask != 0:
+            test = iter_bitmask | team_bitmask
+
+            #check for diagnol win
+            if test & diagnol_win_bitmask == diagnol_win_bitmask:
+                available_win_list.append(iter_bitmask)
+                available_wins_bitmask |= iter_bitmask
+
+            col_win_bitmask = 0b001001001
+            row_win_bitmask = 0b000000111
+            for j in range(1, 4):
+                #check for col win
+                if test & col_win_bitmask == col_win_bitmask:
+                    available_win_list.append(iter_bitmask)
+                    available_wins_bitmask |= iter_bitmask
+
+                #check for row win
+                if test & row_win_bitmask == row_win_bitmask:
+                    available_win_list.append(iter_bitmask)
+                    available_wins_bitmask |= iter_bitmask
+
+                row_win_bitmask <<= 3
+                col_win_bitmask <<= j
+
+        iter_bitmask <<= i
+
+    if len(available_win_list) == 0:
+        return None
+    else:
+        return available_win_list

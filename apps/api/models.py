@@ -40,16 +40,38 @@ class GameState(models.Model):
         """
         return [self.a1, self.b1, self.c1, self.a2, self.b2, self.c2, self.a3, self.b3, self.c3]
 
+    def num_crosses(self):
+        return len([cross for cross in self.crosses() if cross == 1])
+
     def crosses(self):
+        """
+        A utility function to check crosses.
+        :return: A list of crosses a1->c3 with values 1, meaning cross, or 0
+        """
         return [self.isCross(v) for v in self.cells()]
 
     def crosses_bitmask(self):
+        """
+        A utility function to convert crosses to a bitmask.
+        :return: A 9 bit bitmask. a1->c3
+        """
         return int("".join(str(x) for x in self.crosses()), 2)
 
+    def num_noughts(self):
+        return len([nought for nought in self.noughts() if nought == 1])
+
     def noughts(self):
+        """
+        A utility function to check noughts.
+        :return: A list of noughts a1->c3 with values 1, meaning nought, or 0
+        """
         return [self.isNought(v) for v in self.cells()]
 
     def noughts_bitmask(self):
+        """
+        A utility function to convert noughts to a bitmask.
+        :return: A 9 bit bitmask. a1->c3
+        """
         return int("".join(str(x) for x in self.noughts()), 2)
 
     def isNought(self, value):
@@ -64,7 +86,18 @@ class GameState(models.Model):
         else:
             return 1 if value.lower() == "x" else 0
 
+    def slots_available_bitmask(self):
+        """
+        A utility function to check for available slots.
+        :return: A 9 bit bitmask. a1->c3
+        """
+        return ~(self.crosses_bitmask() | self.noughts_bitmask()) & 0b111111111
+
     def reset(self):
+        """
+        Resets the game board state.
+        :return: void
+        """
         self.a1 = self.a2 = self.a3 = None
         self.b1 = self.b2 = self.b3 = None
         self.c1 = self.c2 = self.c3 = None
