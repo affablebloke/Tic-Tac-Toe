@@ -56,7 +56,24 @@ def bitmask_to_slot(bitmask):
     :param bitmask: A bitmask converted into a board slot. IE 0b000000001 -> 'c3'
     :return: A slot string
     """
-    pass
+    iter_bitmask = 0b000000001
+    prefix = 'a'
+    for i in range(1, 10):
+        if bitmask == iter_bitmask:
+            col = ((9 - i) % 3) + 1
+            if col == 1:
+                prefix = 'a'
+            elif col == 2:
+                prefix = 'b'
+            elif col == 3:
+                prefix = 'c'
+
+            return "{0}{1}".format(prefix, str(col))
+
+        iter_bitmask <<= 1
+
+    return None
+
 
 def available_win_slot(game, team):
     """
@@ -104,7 +121,7 @@ def available_win_slot(game, team):
                     available_wins_bitmask |= iter_bitmask
 
                 row_win_bitmask <<= 3
-                col_win_bitmask <<= j
+                col_win_bitmask <<= 1
 
         iter_bitmask <<= i
 

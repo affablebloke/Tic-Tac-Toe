@@ -96,7 +96,15 @@ class APITest(TestCase):
         self.game.state.b1 = 'X'
         self.game.state.b2 = 'X'
 
-        game_logic.available_win_slot(self.game, 'X')
+        available_wins = game_logic.available_win_slot(self.game, 'X')
+        diagnol_win = 0b000000001
+        row_win = 0b000000100
+        col_win = 0b010000000
 
+        self.assertIsNotNone(diagnol_win in available_wins)
+        self.assertIsNotNone(row_win in available_wins)
+        self.assertIsNotNone(col_win in available_wins)
 
+        self.assertEqual('c3', game_logic.bitmask_to_slot(0b000000001))
+        self.assertEqual('a1', game_logic.bitmask_to_slot(0b100000000))
 
