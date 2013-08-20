@@ -29,6 +29,9 @@ class GameState(models.Model):
     c2 = models.CharField(max_length=1, null=True)
     c3 = models.CharField(max_length=1, null=True)
 
+    last_move_x = models.CharField(max_length=1, null=True)
+    last_move_o = models.CharField(max_length=1, null=True)
+
     def cells(self):
         """
         |  A |  B |  C |
@@ -86,7 +89,7 @@ class GameState(models.Model):
         else:
             return 1 if value.lower() == "x" else 0
 
-    def slots_available_bitmask(self):
+    def board_positions_available_bitmask(self):
         """
         A utility function to check for available slots.
         :return: A 9 bit bitmask. a1->c3

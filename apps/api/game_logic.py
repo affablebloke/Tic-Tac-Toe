@@ -30,7 +30,7 @@ Empty side: The player plays in a middle square on any of the 4 sides.
 def first_turn(game):
     """
     :param game: The current game.
-    :return: A Boolean representing if its the first move.
+    :return: A Boolean
     """
     state = game.state
     return (state.num_noughts() + state.num_crosses()) == 0
@@ -39,22 +39,22 @@ def first_turn(game):
 def second_turn(game):
     """
     :param game: The current game.
-    :return: A Boolean representing if its the second move.
+    :return: A Boolean
     """
     state = game.state
     return (state.num_noughts() + state.num_crosses()) == 1
 
 
-def bitmask_to_slot(bitmask):
+def bitmask_to_board_position(bitmask):
     """
     |  A |  B |  C |
-    ---------------
+    ----------------
     |{a1}|{b1}|{c1}|
     |{a2}|{b2}|{c2}|
     |{a2}|{b3}|{c3}|
 
-    :param bitmask: A bitmask converted into a board slot. IE 0b000000001 -> 'c3'
-    :return: A slot string
+    :param bitmask: A bitmask converted into a board position. IE 0b000000001 -> 'c3'
+    :return: A board position string
     """
     iter_bitmask = 0b000000001
     prefix = 'a'
@@ -75,10 +75,77 @@ def bitmask_to_slot(bitmask):
     return None
 
 
-def available_win_slot(game, team):
+def first_move(game, team):
+    """
+    http://en.wikipedia.org/wiki/Tic-tac-toe
+
+    The first player, whom we shall designate "X", has 3 possible positions to mark during the first turn.
+    Superficially, it might seem that there are 9 possible positions, corresponding to the 9 squares in the grid.
+    However, by rotating the board, we will find that in the first turn, every corner mark is strategically equivalent
+    to every other corner mark. The same is true of every edge mark. For strategy purposes, there are therefore only
+    three possible first marks: corner, edge, or center. Player X can win or force a draw from any of these starting
+    marks; however, playing the corner gives the opponent the smallest choice of squares which must be played to
+    avoid losing.
+
+    :param game: The current game.
+    :param team: The team to check for 'X' or 'O'.
+    :return: void
+    """
+    other_team = 'X' if team != 'X' else 'O'
+
+
+def available_corner_moves(game):
     """
     |  A |  B |  C |
-    ---------------
+    ----------------
+    | 1  |    | 2  |
+    |    |    |    |
+    | 3  |    | 4  |
+
+    :param game: The current game.
+    :return: List of available corners
+    """
+    state = game.state
+    corners = [0b100000000, 0b001000000, 0b000000100, 0b000000001]
+    return [corner for corner in corners if (corner & state.board_positions_available_bitmask()) > 0]
+
+
+def available_edge_moves(game):
+    """
+    |  A |  B |  C |
+    ----------------
+    |    | 1  |    |
+    | 2  |    | 3  |
+    |    | 4  |    |
+
+    :param game: The current game.
+    :return: List of available edges.
+    """
+    state = game.state
+    edges = [0b010000000, 0b000100000, 0b000001000, 0b000000010]
+    return [edge for edge in edges if (edge & state.board_positions_available_bitmask()) > 0]
+
+
+def center_available(game):
+    """
+    |  A |  B |  C |
+    ----------------
+    |    |    |    |
+    |    |  X |    |
+    |    |    |    |
+
+    :param game: The current game.
+    :return: A Boolean.
+    """
+    state = game.state
+    # Why not just use bit masks since they're everywhere, instead of b2 is not None
+    return (state.board_positions_available_bitmask() & 0b000010000) > 0
+
+
+def available_win_moves(game, team):
+    """
+    |  A |  B |  C |
+    ----------------
     |{a1}|{b1}|{c1}|
     |{a2}|{b2}|{c2}|
     |{a2}|{b3}|{c3}|
@@ -87,19 +154,19 @@ def available_win_slot(game, team):
 
     :param game: The current game.
     :param team: The team to check for 'X' or 'O'.
-    :return: List of masks of available win strategies.
+    :return: List of bitmasks of available win strategies.
     """
     available_win_list = []
     state = game.state
     team_bitmask = state.crosses_bitmask() if team == 'X' else state.noughts_bitmask()
-    available_slots_bitmask = state.slots_available_bitmask()
+    available_moves_bitmask = state.board_positions_available_bitmask()
     diagnol_win_bitmask = 0b100010001
     iter_bitmask = 0b000000001
     available_wins_bitmask = 0b000000000
 
     for i in range(1, 10):
-        # Only check for available slots
-        if available_slots_bitmask & iter_bitmask != 0:
+        # Only check for available board positions
+        if available_moves_bitmask & iter_bitmask != 0:
             test = iter_bitmask | team_bitmask
 
             #check for diagnol win
