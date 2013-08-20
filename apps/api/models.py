@@ -4,7 +4,6 @@ from utils import base58
 from datetime import datetime
 
 
-
 class GameState(models.Model):
     """
     By keeping game state on the server, this makes it easier to build other dummy clients (iOS/Android) and helps
@@ -18,7 +17,6 @@ class GameState(models.Model):
     |X|O|X|
 
     """
-    number_of_moves = models.IntegerField()
     a1 = models.CharField(max_length=1, null=True)
     a2 = models.CharField(max_length=1, null=True)
     a3 = models.CharField(max_length=1, null=True)
@@ -107,8 +105,8 @@ class GameState(models.Model):
 
     def __str__(self):
         return """
-            |A|B|C|
-            -------
+            |A   |  B |  C |
+            ----------------
             |{a1}|{b1}|{c1}|
             |{a2}|{b2}|{c2}|
             |{a2}|{b3}|{c3}|

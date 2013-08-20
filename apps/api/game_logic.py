@@ -1,4 +1,6 @@
 from apps.api.models import GameState
+import owyl
+import random
 
 """
 http://en.wikipedia.org/wiki/Tic-tac-toe
@@ -27,172 +29,261 @@ Empty side: The player plays in a middle square on any of the 4 sides.
 """
 
 
-def first_turn(game):
+class AI(object):
     """
-    :param game: The current game.
-    :return: A Boolean
+    The brains behind this Tic-Tac-Toe implementation. I know behavior trees is overkill for this Tic-Tac-Toe,
+    but they're fun to work with.
     """
-    state = game.state
-    return (state.num_noughts() + state.num_crosses()) == 0
 
+    def __init__(self, game, player):
+        self.game = game
+        self.player = player
+        self.tree = self.buildTree()
 
-def second_turn(game):
-    """
-    :param game: The current game.
-    :return: A Boolean
-    """
-    state = game.state
-    return (state.num_noughts() + state.num_crosses()) == 1
+    def buildTree(self):
+        """
+        Build the behavior tree.
+        """
+        owyl.selector
+        tree = owyl.selector(owyl.sequence(self.is_first_move(),
+                                           self.calculate_first_move()),
+                             owyl.sequence(self.is_win_move_available(),
+                                           self.calculate_win_move()))
 
+        return owyl.visit(tree)
 
-def bitmask_to_board_position(bitmask):
-    """
-    |  A |  B |  C |
-    ----------------
-    |{a1}|{b1}|{c1}|
-    |{a2}|{b2}|{c2}|
-    |{a2}|{b3}|{c3}|
+    def run(self):
+        for value in self.tree:
+            pass
 
-    :param bitmask: A bitmask converted into a board position. IE 0b000000001 -> 'c3'
-    :return: A board position string
-    """
-    iter_bitmask = 0b000000001
-    prefix = 'a'
-    for i in range(1, 10):
-        if bitmask == iter_bitmask:
-            col = ((9 - i) % 3) + 1
-            if col == 1:
-                prefix = 'a'
-            elif col == 2:
-                prefix = 'b'
-            elif col == 3:
-                prefix = 'c'
+    @owyl.taskmethod
+    def is_first_move(self, **kwargs):
+        """
+        Determines if its the first move.
+        """
+        is_first_move = False
+        if self.player.team == 'X':
+            is_first_move = self.game.state.last_move_x is None
+        else:
+            is_first_move = self.game.state.last_move_o is None
 
-            return "{0}{1}".format(prefix, str(col))
+        yield is_first_move
 
-        iter_bitmask <<= 1
+    @owyl.taskmethod
+    def calculate_first_move(self, **kwargs):
+        """
+        Finds the best first move.
+        """
+        other_player_last_move = self.game.state.last_move_x if self.player.team == 'O' else self.game.state.last_move_o
+        if other_player_last_move is None:
+            # Choose a random corner
+            moves = self.available_corner_moves()
+            position_bitmask = moves[random.randrange(0, len(moves))]
+            position = self.bitmask_to_board_position(position_bitmask)
+            self.mark_position(position)
+        else:
+            # AI should take the center
+            if self.center_available():
+                self.mark_position('b2')
+            else:
+                # AI should take a corner
+                moves = self.available_corner_moves(game)
+                position_bitmask = moves[random.randrange(0, len(moves))]
+                position = self.bitmask_to_board_position(position_bitmask)
+                self.mark_position(position)
 
-    return None
+        yield True
 
+    @owyl.taskmethod
+    def is_win_move_available(self, **kwargs):
+        """
+        Simply finds if there is a win move available.
+        """
+        yield self.available_win_moves() is not None
 
-def first_move(game, team):
-    """
-    http://en.wikipedia.org/wiki/Tic-tac-toe
+    @owyl.taskmethod
+    def calculate_win_move(self, **kwargs):
+        """
+        Choose a win move.
+        """
+        # AI should take a corner
+        moves = self.available_win_moves()
+        position_bitmask = moves[random.randrange(0, len(moves))]
+        position = self.bitmask_to_board_position(position_bitmask)
+        self.mark_position(position)
+        yield True
 
-    The first player, whom we shall designate "X", has 3 possible positions to mark during the first turn.
-    Superficially, it might seem that there are 9 possible positions, corresponding to the 9 squares in the grid.
-    However, by rotating the board, we will find that in the first turn, every corner mark is strategically equivalent
-    to every other corner mark. The same is true of every edge mark. For strategy purposes, there are therefore only
-    three possible first marks: corner, edge, or center. Player X can win or force a draw from any of these starting
-    marks; however, playing the corner gives the opponent the smallest choice of squares which must be played to
-    avoid losing.
+    def first_turn(self):
+        """
+        :return: A Boolean
+        """
+        return (self.game.state.num_noughts() + self.game.state.num_crosses()) == 0
 
-    :param game: The current game.
-    :param team: The team to check for 'X' or 'O'.
-    :return: void
-    """
-    other_team = 'X' if team != 'X' else 'O'
+    def second_turn(self):
+        """
+        :return: A Boolean
+        """
+        return (self.game.state.num_noughts() + self.game.state.num_crosses()) == 1
 
+    def bitmask_to_board_position(self, bitmask):
+        """
+        |  A |  B |  C |
+        ----------------
+        |{a1}|{b1}|{c1}|
+        |{a2}|{b2}|{c2}|
+        |{a3}|{b3}|{c3}|
 
-def available_corner_moves(game):
-    """
-    |  A |  B |  C |
-    ----------------
-    | 1  |    | 2  |
-    |    |    |    |
-    | 3  |    | 4  |
+        :param bitmask: A bitmask converted into a board position. IE 0b000000001 -> 'c3'
+        :return: A board position string
+        """
+        iter_bitmask = 0b000000001
+        prefix = 'a'
+        for i in range(1, 10):
+            if bitmask == iter_bitmask:
+                col = i % 3
+                if col == 0:
+                    prefix = 'a'
+                elif col == 1:
+                    prefix = 'c'
+                elif col == 2:
+                    prefix = 'b'
 
-    :param game: The current game.
-    :return: List of available corners
-    """
-    state = game.state
-    corners = [0b100000000, 0b001000000, 0b000000100, 0b000000001]
-    return [corner for corner in corners if (corner & state.board_positions_available_bitmask()) > 0]
+                row = 3
+                if bitmask > 0b000100000:
+                    row = 1
+                elif bitmask > 0b000000100:
+                    row = 2
 
+                return "{0}{1}".format(prefix, row)
 
-def available_edge_moves(game):
-    """
-    |  A |  B |  C |
-    ----------------
-    |    | 1  |    |
-    | 2  |    | 3  |
-    |    | 4  |    |
+            iter_bitmask <<= 1
 
-    :param game: The current game.
-    :return: List of available edges.
-    """
-    state = game.state
-    edges = [0b010000000, 0b000100000, 0b000001000, 0b000000010]
-    return [edge for edge in edges if (edge & state.board_positions_available_bitmask()) > 0]
-
-
-def center_available(game):
-    """
-    |  A |  B |  C |
-    ----------------
-    |    |    |    |
-    |    |  X |    |
-    |    |    |    |
-
-    :param game: The current game.
-    :return: A Boolean.
-    """
-    state = game.state
-    # Why not just use bit masks since they're everywhere, instead of b2 is not None
-    return (state.board_positions_available_bitmask() & 0b000010000) > 0
-
-
-def available_win_moves(game, team):
-    """
-    |  A |  B |  C |
-    ----------------
-    |{a1}|{b1}|{c1}|
-    |{a2}|{b2}|{c2}|
-    |{a2}|{b3}|{c3}|
-
-    MSB -> LSB == a1 -> c3
-
-    :param game: The current game.
-    :param team: The team to check for 'X' or 'O'.
-    :return: List of bitmasks of available win strategies.
-    """
-    available_win_list = []
-    state = game.state
-    team_bitmask = state.crosses_bitmask() if team == 'X' else state.noughts_bitmask()
-    available_moves_bitmask = state.board_positions_available_bitmask()
-    diagnol_win_bitmask = 0b100010001
-    iter_bitmask = 0b000000001
-    available_wins_bitmask = 0b000000000
-
-    for i in range(1, 10):
-        # Only check for available board positions
-        if available_moves_bitmask & iter_bitmask != 0:
-            test = iter_bitmask | team_bitmask
-
-            #check for diagnol win
-            if test & diagnol_win_bitmask == diagnol_win_bitmask:
-                available_win_list.append(iter_bitmask)
-                available_wins_bitmask |= iter_bitmask
-
-            col_win_bitmask = 0b001001001
-            row_win_bitmask = 0b000000111
-            for j in range(1, 4):
-                #check for col win
-                if test & col_win_bitmask == col_win_bitmask:
-                    available_win_list.append(iter_bitmask)
-                    available_wins_bitmask |= iter_bitmask
-
-                #check for row win
-                if test & row_win_bitmask == row_win_bitmask:
-                    available_win_list.append(iter_bitmask)
-                    available_wins_bitmask |= iter_bitmask
-
-                row_win_bitmask <<= 3
-                col_win_bitmask <<= 1
-
-        iter_bitmask <<= i
-
-    if len(available_win_list) == 0:
         return None
-    else:
-        return available_win_list
+
+    def first_move(self):
+        """
+        http://en.wikipedia.org/wiki/Tic-tac-toe
+
+        The first player, whom we shall designate "X", has 3 possible positions to mark during the first turn.
+        Superficially, it might seem that there are 9 possible positions, corresponding to the 9 squares in the grid.
+        However, by rotating the board, we will find that in the first turn, every corner mark is strategically equivalent
+        to every other corner mark. The same is true of every edge mark. For strategy purposes, there are therefore only
+        three possible first marks: corner, edge, or center. Player X can win or force a draw from any of these starting
+        marks; however, playing the corner gives the opponent the smallest choice of squares which must be played to
+        avoid losing.
+
+        :param game: The current game.
+        :param player: The player to check for 'X' or 'O'.
+        """
+        other_player = 'X' if player != 'X' else 'O'
+
+    def available_corner_moves(self):
+        """
+        |  A |  B |  C |
+        ----------------
+        | 1  |    | 2  |
+        |    |    |    |
+        | 3  |    | 4  |
+
+        :return: List of available corners
+        """
+        corners = [0b100000000, 0b001000000, 0b000000100, 0b000000001]
+        return [corner for corner in corners if (corner & self.game.state.board_positions_available_bitmask()) > 0]
+
+    def available_edge_moves(self):
+        """
+        |  A |  B |  C |
+        ----------------
+        |    | 1  |    |
+        | 2  |    | 3  |
+        |    | 4  |    |
+
+        :return: List of available edges.
+        """
+        edges = [0b010000000, 0b000100000, 0b000001000, 0b000000010]
+        return [edge for edge in edges if (edge & self.game.state.board_positions_available_bitmask()) > 0]
+
+    def center_available(self):
+        """
+        |  A |  B |  C |
+        ----------------
+        |    |    |    |
+        |    |  X |    |
+        |    |    |    |
+
+        :return: A Boolean.
+        """
+        # Why not just use bit masks since they're everywhere, instead of b2 is not None
+        return (self.game.state.board_positions_available_bitmask() & 0b000010000) > 0
+
+    def mark_position(self, position, player=None):
+        """
+        |  A |  B |  C |
+        ----------------
+        |{a1}|{b1}|{c1}|
+        |{a2}|{b2}|{c2}|
+        |{a3}|{b3}|{c3}|
+
+        :param position: A property string
+        """
+        if player is None:
+            player = self.player
+
+        if player.team == 'X':
+            self.game.state.last_move_x = position
+        else:
+            self.game.state.last_move_o = position
+
+        self.game.state.__setattr__(position, player.team)
+
+    def available_win_moves(self):
+        """
+        |  A |  B |  C |
+        ----------------
+        |{a1}|{b1}|{c1}|
+        |{a2}|{b2}|{c2}|
+        |{a3}|{b3}|{c3}|
+
+        MSB -> LSB == a1 -> c3
+
+        :return: List of bitmasks of available win strategies.
+        """
+        available_win_list = []
+        player_bitmask = self.game.state.crosses_bitmask() if self.player.team == 'X' else self.game.state.noughts_bitmask()
+        available_moves_bitmask = self.game.state.board_positions_available_bitmask()
+        diagnol_win_bitmask = 0b100010001
+        iter_bitmask = 0b000000001
+        available_wins_bitmask = 0b000000000
+
+        for i in range(1, 10):
+            # Only check for available board positions
+            if available_moves_bitmask & iter_bitmask != 0:
+                test = iter_bitmask | player_bitmask
+
+                #check for diagnol win
+                if test & diagnol_win_bitmask == diagnol_win_bitmask:
+                    available_win_list.append(iter_bitmask)
+                    available_wins_bitmask |= iter_bitmask
+
+                col_win_bitmask = 0b001001001
+                row_win_bitmask = 0b000000111
+                for j in range(1, 4):
+                    #check for col win
+                    if test & col_win_bitmask == col_win_bitmask:
+                        available_win_list.append(iter_bitmask)
+                        available_wins_bitmask |= iter_bitmask
+
+                    #check for row win
+                    if test & row_win_bitmask == row_win_bitmask:
+                        available_win_list.append(iter_bitmask)
+                        available_wins_bitmask |= iter_bitmask
+
+                    row_win_bitmask <<= 3
+                    col_win_bitmask <<= 1
+
+            iter_bitmask <<= i
+
+        if len(available_win_list) == 0:
+            return None
+        else:
+            return available_win_list
