@@ -1,3 +1,4 @@
+import sys
 from django.test.client import Client
 from django.test import TestCase
 from apps.api.models import TicTacToeGame, PlayerType
@@ -5,7 +6,6 @@ from game_logic import AI
 
 
 class APITest(TestCase):
-
     def setUp(self):
         self.client = Client()
         self.game = TicTacToeGame.create(player_1=PlayerType(team='X', is_human=True),
@@ -83,25 +83,50 @@ class APITest(TestCase):
         |A|B|C|
         -------
         |X|X| |
-        |O|X| |
-        |O| | |
+        |X|X| |
+        | | | |
 
         """
         self.game.state.reset()
         self.game.state.a1 = 'X'
-        self.game.state.a2 = 'O'
-        self.game.state.a3 = 'O'
+        self.game.state.a2 = 'X'
         self.game.state.b1 = 'X'
         self.game.state.b2 = 'X'
 
         available_wins = self.ai.available_win_moves()
-        diagnol_win = 0b000000001
-        row_win = 0b000000100
-        col_win = 0b010000000
+        win1 = 0b000000001
+        win2 = 0b001000000
+        win3 = 0b000000100
+        win4 = 0b000000010
+        win5 = 0b000000001
 
-        self.assertIsNotNone(diagnol_win in available_wins)
-        self.assertIsNotNone(row_win in available_wins)
-        self.assertIsNotNone(col_win in available_wins)
+        self.assertTrue(win1 in available_wins)
+        self.assertTrue(win2 in available_wins)
+        self.assertTrue(win3 in available_wins)
+        self.assertTrue(win4 in available_wins)
+        self.assertTrue(win5 in available_wins)
+
+    def test_diagnol_win_moves_logic(self):
+        """
+        Create board state.
+        |A|B|C|
+        -------
+        |X| | |
+        | |X| |
+        |X| | |
+
+        """
+        self.game.state.reset()
+        self.game.state.a1 = 'X'
+        self.game.state.b2 = 'X'
+        self.game.state.a3 = 'X'
+
+        available_wins = self.ai.available_win_moves()
+        win1 = 0b001000000
+        win2 = 0b000000001
+
+        self.assertTrue(win1 in available_wins)
+        self.assertTrue(win2 in available_wins)
 
     def test_board_bitmask_position_logic(self):
         """
@@ -171,3 +196,59 @@ class APITest(TestCase):
         ai.run()
         # AI should choose position 'b3'
         self.assertIsNotNone(self.game.state.b3)
+
+
+        """
+        Create board state.
+        |A|B|C|
+        -------
+        |X| |X|
+        | |O| |
+        | | | |
+
+        """
+        ai = AI(self.game, self.game.player_2)
+        self.game.state.reset()
+        # using mark position allows AI to keep track of last move
+        ai.mark_position('a1', self.game.player_1)
+        ai.mark_position('b2', self.game.player_2)
+        ai.mark_position('c1', self.game.player_1)
+        ai.run()
+        # AI should choose position 'b1'
+        self.assertIsNotNone(self.game.state.b1)
+
+        """
+        Create board state.
+        |A|B|C|
+        -------
+        |O|X| |
+        | | | |
+        |O| | |
+       """
+
+        ai2 = AI(self.game, self.game.player_1)
+        self.game.state.reset()
+        # using mark position allows AI to keep track of last move
+        ai2.mark_position('a1', self.game.player_2)
+        ai2.mark_position('a3', self.game.player_2)
+        ai2.mark_position('b1', self.game.player_1)
+        ai2.run()
+        # AI should choose position 'a3'
+        self.assertIsNotNone(self.game.state.a2)
+
+
+    def test__ai_simulations(self):
+        for i in range(0, 100):
+            self.game.state.reset()
+            for i in range(1, 10):
+                player = self.game.player_1
+                if i % 2 == 0:
+                    player = self.game.player_2
+
+                ai = AI(self.game, player)
+                ai.run()
+                available_win_list = ai.check_wins(self.game.state.noughts_bitmask())
+                self.assertTrue(len(available_win_list) == 0)
+
+                available_win_list = ai.check_wins(self.game.state.crosses_bitmask())
+                self.assertTrue(len(available_win_list) == 0)

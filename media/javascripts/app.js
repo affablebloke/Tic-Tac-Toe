@@ -1,4 +1,6 @@
-/*global define */
+/*
+Initialize the application.
+ */
 define([], function () {
     'use strict';
 

@@ -102,11 +102,12 @@ class GameState(models.Model):
         self.a1 = self.a2 = self.a3 = None
         self.b1 = self.b2 = self.b3 = None
         self.c1 = self.c2 = self.c3 = None
+        self.last_move_x = self.last_move_o = None
 
     def __str__(self):
         return """
-            |A   |  B |  C |
-            ----------------
+            |A|B|C|
+            -------
             |{a1}|{b1}|{c1}|
             |{a2}|{b2}|{c2}|
             |{a2}|{b3}|{c3}|
