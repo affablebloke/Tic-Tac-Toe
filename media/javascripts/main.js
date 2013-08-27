@@ -1,6 +1,6 @@
 require.config({
     paths: {
-        jquery: '../scripts/components/jquery/jquery',
+        jquery: '../scripts/components/jquery/jquery.min',
         lib: '../scripts/lib',
         three: 'components/threejs/build/three.min',
         bootstrap: 'components/bootstrap/dist/js/bootstrap.min',
