@@ -1,0 +1,19 @@
+{
+  "name": "gsap",
+  "version": "1.10.2",
+  "description": "GreenSock Animation Platform (GSAP) is a suite of high-performance JavaScript tools for scripted animation, including TweenLite, TweenMax, TimelineLite, TimelineMax, various easing equations (EasePack), plugins for things like animating along Bezier paths, tweening RaphaelJS or KineticJS objects, etc. and it also includes an optional jQuery plugin that hijacks the native jQuery.animate() method so that animations perform much better and additional properties can be tweened, like colors, transforms (2D and 3D), boxShadow, borderRadius, clip, and lots more. GSAP has no dependencies on jQuery and it can animate ANY numeric property of ANY object. See http://www.greensock.com/gsap-js/ for details.",
+  "author": {
+    "name": "Jack Doyle",
+    "url": "http://www.greensock.com/gsap-js/"
+  },
+  "main": "./src/minified/TweenMax.min.js",
+  "dependencies": {},
+  "gitHead": "3d1d2b936b6b6ada7695fc768cd9375b60ffa1ea",
+  "readme": "GreenSock-JS\n============\n\nPublic repository for GreenSock's JavaScript libraries like GSAP. See http://www.greensock.com/gsap-js/ for details.\n\nGetting started: http://www.greensock.com/get-started-js/\n\nFull documentation: http://api.greensock.com/js/\n\njQuery plugin: http://www.greensock.com/jquery-gsap-plugin/\n\nCopyright (c) 2013, GreenSock. All rights reserved. This work is subject to the terms in http://www.greensock.com/terms_of_use.html or for Club GreenSock members, the software agreement that was issued with the membership.",
+  "readmeFilename": "README.md",
+  "_id": "gsap@1.10.2",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/greensock/GreenSock-JS.git"
+  }
+}

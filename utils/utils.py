@@ -1,5 +1,6 @@
 import base58
-
+from django.http import HttpResponse
+import json
 
 def json_view(func):
     """

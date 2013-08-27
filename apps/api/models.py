@@ -129,7 +129,7 @@ class TicTacToeGame(models.Model):
     game game state issues if you want to build multi-player functionality.
     """
     token = models.CharField(max_length=60)
-    state = models.OneToOneField(GameState, related_name='state')
+    game_state = models.OneToOneField(GameState, related_name='game_state')
     # For now player_1 is always human
     player_1 = models.OneToOneField(PlayerType, related_name='player_1')
     player_2 = models.OneToOneField(PlayerType, related_name='player_2')
@@ -138,6 +138,14 @@ class TicTacToeGame(models.Model):
     @classmethod
     def create(cls, **kwargs):
         game = cls(**kwargs)
-        game.state = GameState()
+        player_1 = PlayerType(team='X', is_human=True)
+        player_2 = PlayerType(team='O', is_human=False)
+        player_1.save()
+        player_2.save()
+        game.player_1 = player_1
+        game.player_2 = player_2
+        game_state = GameState()
+        game_state.save()
+        game.game_state = game_state
         game.token = base58.b58encode(str(random.randrange(999, 9999999, 2)))
         return game

@@ -1,3 +1,7 @@
+@import url(http://fonts.googleapis.com/css?family=Roboto:700);
+@import url(http://weloveiconfonts.com/api/?family=entypo);
+@import url(http://fonts.googleapis.com/css?family=Holtwood+One+SC);
+@import url(http://fonts.googleapis.com/css?family=Voces);
 /* Welcome to Compass.
  * In this file you should write your main styles. (or centralize your imports)
  * Import this file using the following HTML or equivalent:
@@ -65,4 +69,120 @@ a img {
 /* line 116, ../../../../../../../Library/Ruby/Gems/1.8/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary {
   display: block;
+}
+
+/* line 16, ../sass/screen.scss */
+.start-menu {
+  position: absolute;
+  width: 100%;
+  margin: 0px auto;
+  padding: 25px;
+  font-family: 'Holtwood One SC', serif;
+  text-align: center;
+}
+/* line 24, ../sass/screen.scss */
+.start-menu .controls {
+  text-align: center;
+}
+/* line 28, ../sass/screen.scss */
+.start-menu h1 {
+  color: #e74c3c;
+  font-size: 2.0em;
+  text-shadow: 0px 3px 0px #c0392b;
+  margin: 10px;
+}
+
+/* line 37, ../sass/screen.scss */
+.player-turn {
+  position: absolute;
+  width: 100%;
+  margin: 0px auto;
+  padding: 25px;
+  font-family: 'Holtwood One SC', serif;
+  text-align: center;
+}
+/* line 45, ../sass/screen.scss */
+.player-turn h1 {
+  color: #e74c3c;
+  font-size: 2.0em;
+  text-shadow: 0px 3px 0px #c0392b;
+  margin: 10px;
+}
+
+/* line 54, ../sass/screen.scss */
+.ai-turn {
+  position: absolute;
+  width: 100%;
+  margin: 0px auto;
+  padding: 25px;
+  font-family: 'Holtwood One SC', serif;
+  text-align: center;
+}
+/* line 62, ../sass/screen.scss */
+.ai-turn h1 {
+  color: #e74c3c;
+  font-size: 2.0em;
+  text-shadow: 0px 3px 0px #c0392b;
+  margin: 10px;
+}
+
+/* line 71, ../sass/screen.scss */
+.play-again-menu {
+  position: absolute;
+  width: 100%;
+  margin: 0px auto;
+  padding: 25px;
+  font-family: 'Holtwood One SC', serif;
+  text-align: center;
+}
+/* line 79, ../sass/screen.scss */
+.play-again-menu h1 {
+  color: #e74c3c;
+  font-size: 2.0em;
+  text-shadow: 0px 3px 0px #c0392b;
+  margin: 10px;
+}
+
+/* line 88, ../sass/screen.scss */
+.play-button {
+  border: 0;
+  border-radius: 7px;
+  padding: 0 17px;
+  background: #e74c3c;
+  display: inline-block;
+  width: 99px;
+  border-bottom: 5px solid #c0392b;
+  color: white;
+  height: 45px;
+  font-family: 'Roboto', sans-serif;
+  color: white;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+/* line 104, ../sass/screen.scss */
+.play-button:active {
+  border-bottom: 0px solid #c0392b;
+}
+
+/* line 108, ../sass/screen.scss */
+.play-again-button {
+  border: 0;
+  border-radius: 7px;
+  padding: 0 17px;
+  background: #e74c3c;
+  display: inline-block;
+  width: 199px;
+  border-bottom: 5px solid #c0392b;
+  color: white;
+  height: 45px;
+  font-family: 'Roboto', sans-serif;
+  color: white;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+/* line 124, ../sass/screen.scss */
+.play-again-button:active {
+  border-bottom: 0px solid #c0392b;
 }

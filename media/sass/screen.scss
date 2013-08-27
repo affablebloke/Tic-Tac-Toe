@@ -4,3 +4,123 @@
  * <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css" /> */
 
 @import "compass/reset";
+@import "compass/typography/vertical_rhythm";
+@import "compass/css3/box-shadow";
+@import "compass/css3/transition";
+
+@import url(http://fonts.googleapis.com/css?family=Roboto:700);
+@import url(http://weloveiconfonts.com/api/?family=entypo);
+@import url(http://fonts.googleapis.com/css?family=Holtwood+One+SC);
+@import url(http://fonts.googleapis.com/css?family=Voces);
+
+.start-menu{
+  position: absolute;
+  width: 100%;
+  margin: 0px auto;
+  padding: 25px;
+  font-family: 'Holtwood One SC', serif;
+  text-align: center;
+
+  .controls{
+    text-align: center;
+  }
+
+  h1{
+    color: #e74c3c;
+    font-size: 2.0em;
+    text-shadow: 0px 3px 0px #c0392b;
+    margin: 10px;
+
+  }
+}
+
+.player-turn{
+  position: absolute;
+  width: 100%;
+  margin: 0px auto;
+  padding: 25px;
+  font-family: 'Holtwood One SC', serif;
+  text-align: center;
+
+  h1{
+    color: #e74c3c;
+    font-size: 2.0em;
+    text-shadow: 0px 3px 0px #c0392b;
+    margin: 10px;
+
+  }
+}
+
+.ai-turn{
+  position: absolute;
+  width: 100%;
+  margin: 0px auto;
+  padding: 25px;
+  font-family: 'Holtwood One SC', serif;
+  text-align: center;
+
+  h1{
+    color: #e74c3c;
+    font-size: 2.0em;
+    text-shadow: 0px 3px 0px #c0392b;
+    margin: 10px;
+
+  }
+}
+
+.play-again-menu{
+  position: absolute;
+  width: 100%;
+  margin: 0px auto;
+  padding: 25px;
+  font-family: 'Holtwood One SC', serif;
+  text-align: center;
+
+  h1{
+    color: #e74c3c;
+    font-size: 2.0em;
+    text-shadow: 0px 3px 0px #c0392b;
+    margin: 10px;
+
+  }
+}
+
+.play-button {
+  border: 0;
+  border-radius:7px;
+  padding: 0 17px;
+  background: #e74c3c;
+  display: inline-block;
+  width:99px;
+  border-bottom:5px solid #c0392b;
+  color:white;
+  height: 45px;
+  font-family: 'Roboto', sans-serif;
+  color: white;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+.play-button:active {
+  border-bottom:0px solid #c0392b;
+}
+
+.play-again-button {
+  border: 0;
+  border-radius:7px;
+  padding: 0 17px;
+  background: #e74c3c;
+  display: inline-block;
+  width:199px;
+  border-bottom:5px solid #c0392b;
+  color:white;
+  height: 45px;
+  font-family: 'Roboto', sans-serif;
+  color: white;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+.play-again-button:active {
+  border-bottom:0px solid #c0392b;
+}

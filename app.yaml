@@ -39,6 +39,9 @@ handlers:
 - url: /styles
   static_dir: media/stylesheets
 
+- url: /blender
+  static_dir: media/blender
+
 - url: /fonts
   static_dir: media/fonts
 

@@ -23,24 +23,22 @@ class AI(object):
         """
         Build the behavior tree.
         """
-        owyl.selector
-        tree = owyl.selector(owyl.sequence(self.is_first_move(),
-                                           self.play_first_move()),
-                            owyl.sequence(self.is_win_move_available(),
+        tree = owyl.selector(
+                             owyl.sequence(self.is_win_move_available(),
                                            self.play_win_move()),
-                            owyl.sequence(self.is_block_move_available(),
+                             owyl.sequence(self.is_block_move_available(),
                                            self.play_block_move()),
-                            #  Fork strategy automagically happens
-                            # owyl.sequence(self.is_fork_available(),
-                            #                self.play_fork_move()),
-
-                            owyl.sequence(self.is_center_available(),
+                             owyl.sequence(self.is_fork_available(),
+                                           self.play_fork_move()),
+                             owyl.sequence(self.is_block_fork_available(),
+                                           self.play_block_fork_move()),
+                             owyl.sequence(self.is_center_available(),
                                            self.play_center()),
                              owyl.sequence(self.is_opposite_corner_available(),
                                            self.play_opposite_corner_move()),
-                            owyl.sequence(self.is_corner_available(),
+                             owyl.sequence(self.is_corner_available(),
                                            self.play_corner_move()),
-                            owyl.sequence(self.is_edge_available(),
+                             owyl.sequence(self.is_edge_available(),
                                            self.play_edge_move())
         )
 
@@ -57,9 +55,9 @@ class AI(object):
         """
         is_first_move = False
         if self.player.team == 'X':
-            is_first_move = self.game.state.last_move_x is None
+            is_first_move = self.game.game_state.last_move_x is None
         else:
-            is_first_move = self.game.state.last_move_o is None
+            is_first_move = self.game.game_state.last_move_o is None
 
         yield is_first_move
 
@@ -68,7 +66,7 @@ class AI(object):
         """
         Finds the best first move.
         """
-        other_player_last_move = self.game.state.last_move_x if self.player.team == 'O' else self.game.state.last_move_o
+        other_player_last_move = self.game.game_state.last_move_x if self.player.team == 'O' else self.game.game_state.last_move_o
         if other_player_last_move is None:
             # Choose a random corner
             moves = self.available_corner_moves()
@@ -76,7 +74,7 @@ class AI(object):
             position = self.bitmask_to_board_position(position_bitmask)
             self.mark_position(position)
         else:
-            # AI should take the center
+
             if self.is_corner_position(other_player_last_move):
                 position = self.available_opposite_corner()
                 self.mark_position(position)
@@ -149,7 +147,7 @@ class AI(object):
         """
         Simply finds if the center is available
         """
-        yield self.game.state.b2 is None
+        yield self.game.game_state.b2 is None
 
     @owyl.taskmethod
     def play_center(self, **kwargs):
@@ -165,7 +163,7 @@ class AI(object):
         Simply finds if there is a edge available.
         """
         yield len(self.available_edge_moves()) > 0
-        
+
     @owyl.taskmethod
     def play_edge_move(self, **kwargs):
         """
@@ -209,17 +207,44 @@ class AI(object):
         self.mark_position(self.available_fork())
         yield True
 
+    @owyl.taskmethod
+    def is_block_fork_available(self, **kwargs):
+        """
+        Simply finds if there is a block fork move available.
+        """
+        yield self.available_fork(self.other_team()) is not None
+
+    @owyl.taskmethod
+    def play_block_fork_move(self, **kwargs):
+        """
+        Play a block fork move.
+        """
+        center = self.game.game_state.b2
+        # check to see if you should play a middle position
+        if center and center.upper() == self.player.team.upper():
+            moves = self.available_edge_moves()
+            position_bitmask = moves[random.randrange(0, len(moves))]
+            position = self.bitmask_to_board_position(position_bitmask)
+            self.mark_position(position)
+        else:
+            moves = self.available_corner_moves()
+            position_bitmask = moves[random.randrange(0, len(moves))]
+            position = self.bitmask_to_board_position(position_bitmask)
+            self.mark_position(position)
+
+        yield True
+
     def first_turn(self):
         """
         :return: A Boolean
         """
-        return (self.game.state.num_noughts() + self.game.state.num_crosses()) == 0
+        return (self.game.game_state.num_noughts() + self.game.game_state.num_crosses()) == 0
 
     def second_turn(self):
         """
         :return: A Boolean
         """
-        return (self.game.state.num_noughts() + self.game.state.num_crosses()) == 1
+        return (self.game.game_state.num_noughts() + self.game.game_state.num_crosses()) == 1
 
     def other_team(self):
         team = self.player.team
@@ -235,7 +260,7 @@ class AI(object):
         :return: A Boolean
         """
         corners = ["a1", "c1", "a3", "c3"]
-        return position in corners
+        return position.lower() in corners
 
     def available_opposite_corner(self):
         """
@@ -245,7 +270,8 @@ class AI(object):
         team = self.player.team
         opposite_corner_map = {"a1": "c3", "c3": "a1", "c1": "a3", "a3": "c1"}
         for k in opposite_corner_map.keys():
-            if not self.available_position(k) and getattr(self.game.state, k) != team and self.available_position(opposite_corner_map[k]):
+            if not self.available_position(k) and getattr(self.game.game_state, k) != team and self.available_position(
+                    opposite_corner_map[k]):
                 return opposite_corner_map[k]
 
         return None
@@ -259,12 +285,29 @@ class AI(object):
             player = self.player
 
         team = player.team
-        opposite_corner_map = {"a1": "c3", "c1": "a3"}
+        opposite_corner_map = {"a1": "c3", "c3": "a1", "c1": "a3", "a3": "c1"}
         for k in opposite_corner_map.keys():
-            if getattr(self.game.state, opposite_corner_map[k]) == team and getattr(self.game.state, k) == team and \
-                            len(self.available_corner_moves()) > 0:
-                moves = self.available_corner_moves()
-                return moves[random.randrange(0, len(moves))]
+            if getattr(self.game.game_state, opposite_corner_map[k]) == team and\
+                            getattr(self.game.game_state, k) == team and len(self.available_corner_moves()) > 0:
+                    moves = self.available_corner_moves()
+                    return moves[random.randrange(0, len(moves))]
+
+        return None
+
+    def potential_fork(self, player=None):
+        """
+        Finds an potential fork.
+        :return: A board position string
+        """
+        if player is None:
+            player = self.player
+
+        team = player.team
+        opposite_corner_map = {"a1": "c3", "c3": "a1", "c1": "a3", "a3": "c1"}
+        for k in opposite_corner_map.keys():
+            if getattr(self.game.game_state, opposite_corner_map[k]) == team and\
+                            getattr(self.game.game_state, k) is None:
+                    return k.upper()
 
         return None
 
@@ -314,7 +357,7 @@ class AI(object):
         :return: List of available corners
         """
         corners = [0b100000000, 0b001000000, 0b000000100, 0b000000001]
-        return [corner for corner in corners if (corner & self.game.state.board_positions_available_bitmask()) > 0]
+        return [corner for corner in corners if (corner & self.game.game_state.board_positions_available_bitmask()) > 0]
 
     def available_edge_moves(self):
         """
@@ -327,7 +370,7 @@ class AI(object):
         :return: List of available edges.
         """
         edges = [0b010000000, 0b000100000, 0b000001000, 0b000000010]
-        return [edge for edge in edges if (edge & self.game.state.board_positions_available_bitmask()) > 0]
+        return [edge for edge in edges if (edge & self.game.game_state.board_positions_available_bitmask()) > 0]
 
     def center_available(self):
         """
@@ -340,7 +383,7 @@ class AI(object):
         :return: A Boolean.
         """
         # Why not just use bit masks since they're everywhere, instead of b2 is not None
-        return (self.game.state.board_positions_available_bitmask() & 0b000010000) > 0
+        return (self.game.game_state.board_positions_available_bitmask() & 0b000010000) > 0
 
     def available_position(self, position):
         """
@@ -349,7 +392,7 @@ class AI(object):
         :param position: The position.
         :return: A Boolean.
         """
-        return getattr(self.game.state, position) is None
+        return getattr(self.game.game_state, position) is None
 
     def mark_position(self, position, player=None):
         """
@@ -365,11 +408,11 @@ class AI(object):
             player = self.player
 
         if player.team == 'X':
-            self.game.state.last_move_x = position
+            self.game.game_state.last_move_x = position.upper()
         else:
-            self.game.state.last_move_o = position
+            self.game.game_state.last_move_o = position.upper()
 
-        self.game.state.__setattr__(position, player.team)
+        self.game.game_state.__setattr__(position.lower(), player.team.upper())
 
     def check_wins(self, player_bitmask, availability_bitmask=None):
 
@@ -423,11 +466,11 @@ class AI(object):
         if player is None:
             player = self.player
 
-        player_bitmask = self.game.state.crosses_bitmask()
+        player_bitmask = self.game.game_state.crosses_bitmask()
         if player.team == 'O':
-            player_bitmask = self.game.state.noughts_bitmask()
+            player_bitmask = self.game.game_state.noughts_bitmask()
 
-        available_bitmask = self.game.state.board_positions_available_bitmask()
+        available_bitmask = self.game.game_state.board_positions_available_bitmask()
 
         available_win_list = self.check_wins(player_bitmask, availability_bitmask=available_bitmask)
 

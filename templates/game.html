@@ -1,3 +1,33 @@
 {% extends 'base.html' %}
 {% block content %}
+    <!-- Main Menu Prompt -->
+    <header class="start-menu" style="display: none; visibility: hidden;">
+        <h1>Tic Tac Toe</h1>
+
+        <div class="controls">
+            <button id="play-button" type="button" class="play-button">Play</button>
+        </div>
+    </header>
+
+    <!-- Play Again Menu Prompt -->
+    <header class="play-again-menu" style="display: none; visibility: hidden;">
+        <h1 id="message"></h1>
+
+        <div class="controls">
+            <button id="play-again-button" type="button" class="play-again-button">Play Again</button>
+        </div>
+    </header>
+
+    <!-- Your Turn Prompt -->
+    <header class="player-turn" style="display: none; visibility: hidden;">
+        <h1>Your Turn!</h1>
+    </header>
+
+    <!-- AI Turn Prompt -->
+    <header class="ai-turn" style="display: none; visibility: hidden;">
+        <h1>AI Turn!</h1>
+    </header>
+
+    <!-- Three JS -->
+    <div id="renderer"></div>
 {% endblock %}
